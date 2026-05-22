@@ -1,5 +1,10 @@
 #include <Arduino.h>
 #include <Servo.h>
+#define trig 13
+#define echo 12
+
+long duration;
+float distance;
 
 Servo mg996_1, mg996_2, mg996_3;
 Servo mg90s_1, mg90s_2, mg90s_3;
@@ -37,6 +42,10 @@ void setup() {
   pinMode(dir,OUTPUT);
   pinMode(stp,OUTPUT);
 
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
+  Serial.begin(9600);
+
   delay(1000);
 }
 
@@ -47,71 +56,98 @@ void loop() {
   int w=90;
   int ef=60;
 
-  b=baseL(b,120);
-  delay(1000);
+  digitalWrite(trig, LOW);
+    delayMicroseconds(2);
 
-  s=shoulderD(s,80);
-  delay(1000);
+    // Send 10 microsecond pulse
+    digitalWrite(trig, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trig, LOW);
 
-  el=elbowD(el,160);
-  delay(1000);
+    // Read echo pulse duration
+    duration = pulseIn(echo, HIGH);
 
-  w=wristD(w,20);
-  delay(1000);
+    // Calculate distance in cm
+    distance = duration * 0.0343 / 2;
+    Serial.print("Distance: ");
+    Serial.print(distance);
+    Serial.println(" cm");
 
-  ef=endeff(ef);
-  delay(1000);
 
 
-  el=elbowU(el,90);
-  delay(1000);
+  if(distance<40 && distance>5)
+  {
 
-  s=shoulderU(s,130);
-  delay(1000);
+      b=baseL(b,140);
+      delay(1000);
 
-  b=baseR(b,90);
-  delay(1000);
+      s=shoulderD(s,80);
+      delay(1000);
 
-  stepperRight();
+      el=elbowD(el,160);
+      delay(1000);
 
-  b=baseR(b,60);
-  delay(1000);
+      w=wristD(w,20);
+      delay(1000);
 
-  s=shoulderD(s,80);
-  delay(1000);
+      ef=endeff(ef);
+      delay(1000);
 
-  el=elbowD(el,160);
-  delay(1000);
 
-  w=wristD(w,20);
-  delay(1000);
+      el=elbowU(el,90);
+      delay(1000);
 
-  ef=endeff(ef);
-  delay(1000);
+      s=shoulderU(s,130);
+      delay(1000);
 
-  w=wristU(w,90);
-  delay(1000);
+      b=baseR(b,90);
+      delay(1000);
 
-  el=elbowU(el,90);
-  delay(1000);
 
-  s=shoulderU(s,130);
-  delay(1000);
+      stepperLeft();
+      delay(1000); 
 
-  b=baseL(b,90);
-  delay(1000);
+      b=baseR(b,60);
+      delay(1000);
 
-  stepperLeft();
+      s=shoulderD(s,80);
+      delay(1000);
+
+      el=elbowD(el,160);
+      delay(1000);
+
+      w=wristD(w,20);
+      delay(1000);
+
+      ef=endeff(ef);
+      delay(1000);
+
+      w=wristU(w,90);
+      delay(1000);
+
+      el=elbowU(el,90);
+      delay(1000);
+
+      s=shoulderU(s,130);
+      delay(1000);
+
+      b=baseL(b,90);
+      delay(1000);
+
+
+    stepperRight();
+    delay(1000);
+  }
   
 }
 
 int baseR(int i,int n)
 {
   int k;
-  for(int j=i;i>=n;i--)
+  for(int j=i;j>=n;j--)
   {
-    mg996_1.write(i);
-    k=i;
+    mg996_1.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -120,10 +156,10 @@ int baseR(int i,int n)
 int baseL(int i,int n)
 {
   int k;
-  for(int j=i;i<=n;i++)
+  for(int j=i;j<=n;j++)
   {
-    mg996_1.write(i);
-    k=i;
+    mg996_1.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -132,10 +168,10 @@ int baseL(int i,int n)
 int shoulderD(int i,int n)
 {
   int k;
-  for(int j=i;i>=n;i--)
+  for(int j=i;j>=n;j--)
   {
-    mg996_2.write(i);
-    k=i;
+    mg996_2.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -144,10 +180,10 @@ int shoulderD(int i,int n)
 int shoulderU(int i,int n)
 {
   int k;
-  for(int j=i;i<=n;i++)
+  for(int j=i;j<=n;j++)
   {
-    mg996_2.write(i);
-    k=i;
+    mg996_2.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -156,10 +192,10 @@ int shoulderU(int i,int n)
 int elbowD(int i,int n)
 {
   int k;
-  for(int j=i;i<=n;i++)
+  for(int j=i;j<=n;j++)
   {
-    mg996_3.write(i);
-    k=i;
+    mg996_3.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -168,10 +204,10 @@ int elbowD(int i,int n)
 int elbowU(int i,int n)
 {
   int k;
-  for(int j=i;i>=n;i--)
+  for(int j=i;j>=n;j--)
   {
-    mg996_3.write(i);
-    k=i;
+    mg996_3.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -180,10 +216,10 @@ int elbowU(int i,int n)
 int wristD(int i,int n)
 {
   int k;
-  for(int j=i;i>=n;i--)
+  for(int j=i;j>=n;j--)
   {
-    mg90s_1.write(i);
-    k=i;
+    mg90s_1.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -192,10 +228,10 @@ int wristD(int i,int n)
 int wristU(int i,int n)
 {
   int k;
-  for(int j=i;i<=n;i++)
+  for(int j=i;j<=n;j++)
   {
-    mg90s_1.write(i);
-    k=i;
+    mg90s_1.write(j);
+    k=j;
     delay(50);
   }
   return k;
@@ -246,4 +282,3 @@ void stepperLeft()
   }
   delay(1000); 
 }
-
